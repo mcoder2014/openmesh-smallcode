@@ -2,4 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     laplaceDeformation \
-    mirror
+    mirror \
+    projection
