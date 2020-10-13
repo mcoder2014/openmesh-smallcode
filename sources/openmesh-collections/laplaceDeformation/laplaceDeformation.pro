@@ -4,16 +4,16 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 HEADERS += \
-    LaplaceTransformation.h \
+    LaplaceDeformation.h \
     Mesh.h
 
 SOURCES += \
-        LaplaceTransformation.cpp \
+        LaplaceDeformation.cpp \
         main.cpp
 
 # Realize laplace Transformation algorithm
 
-TARGET = laplaceTransform
+TARGET = laplaceDeformation
 DESTDIR = ../bin/
 
 unix {

@@ -1,8 +1,8 @@
-#include "LaplaceTransformation.h"
+#include "LaplaceDeformation.h"
 
 #include <assert.h>
 
-void LaplaceTransformation::initMatrix()
+void LaplaceDeformation::initMatrix()
 {
     buildMatrixLsTLs();
     buildMatrixLsTB();
@@ -12,7 +12,7 @@ void LaplaceTransformation::initMatrix()
  * @brief LaplaceTransformation::buildMatrixLsTLs
  * 构造矩阵 LsT * Ls
  */
-void LaplaceTransformation::buildMatrixLsTLs()
+void LaplaceDeformation::buildMatrixLsTLs()
 {
     int numN = static_cast<int>(sourceMesh.n_vertices());
     int numM = static_cast<int>(this->fixedAnchorIndex.size() + this->moveAnchorIndex.size());
@@ -74,7 +74,7 @@ void LaplaceTransformation::buildMatrixLsTLs()
  * @brief LaplaceTransformation::buildMatrixLsTB
  * 构造矩阵 LsT * B
  */
-void LaplaceTransformation::buildMatrixLsTB()
+void LaplaceDeformation::buildMatrixLsTB()
 {
     int numN = static_cast<int>(sourceMesh.n_vertices());
     int numM = static_cast<int>(this->fixedAnchorIndex.size() + this->moveAnchorIndex.size());
@@ -136,7 +136,7 @@ void LaplaceTransformation::buildMatrixLsTB()
  * @brief LaplaceTransformation::calculate
  * 解线性方程 LsT*Ls * X = LsT * B
  */
-void LaplaceTransformation::calculate()
+void LaplaceDeformation::calculate()
 {
 
     Eigen::HouseholderQR<MatrixXf> qr;
@@ -152,7 +152,7 @@ void LaplaceTransformation::calculate()
  * 把计算结果，构造目标模型的网格
  * @return
  */
-Mesh LaplaceTransformation::applyTransformation()
+Mesh LaplaceDeformation::applyTransformation()
 {
     int numN = static_cast<int>(sourceMesh.n_vertices());
 
@@ -172,7 +172,7 @@ Mesh LaplaceTransformation::applyTransformation()
     return dstMesh;
 }
 
-void LaplaceTransformation::getDegree()
+void LaplaceDeformation::getDegree()
 {
     degreeMap.clear();
 
@@ -191,7 +191,7 @@ void LaplaceTransformation::getDegree()
     }
 }
 
-void LaplaceTransformation::setMoveAnchors(vector<int> &moveAnchorIndex, vector<Eigen::Vector3d> &moveAnchorPosition)
+void LaplaceDeformation::setMoveAnchors(vector<int> &moveAnchorIndex, vector<Eigen::Vector3d> &moveAnchorPosition)
 {
     assert(moveAnchorIndex.size() == moveAnchorPosition.size());
 
@@ -201,19 +201,19 @@ void LaplaceTransformation::setMoveAnchors(vector<int> &moveAnchorIndex, vector<
     this->moveAnchorPosition.assign(moveAnchorPosition.begin(), moveAnchorPosition.end());
 }
 
-void LaplaceTransformation::addMoveAnchor(int moveIndex, Eigen::Vector3d position)
+void LaplaceDeformation::addMoveAnchor(int moveIndex, Eigen::Vector3d position)
 {
     this->moveAnchorIndex.push_back(moveIndex);
     this->moveAnchorPosition.push_back(position);
 }
 
-void LaplaceTransformation::setFixedAnchors(vector<int> &fixedAnchorIndex)
+void LaplaceDeformation::setFixedAnchors(vector<int> &fixedAnchorIndex)
 {
     this->fixedAnchorIndex.clear();
     this->fixedAnchorIndex.assign(fixedAnchorIndex.begin(), fixedAnchorIndex.end());
 }
 
-void LaplaceTransformation::addFixedAnchor(int fixedIndex)
+void LaplaceDeformation::addFixedAnchor(int fixedIndex)
 {
     this->fixedAnchorIndex.push_back(fixedIndex);
 }
@@ -223,7 +223,7 @@ void LaplaceTransformation::addFixedAnchor(int fixedIndex)
  * 实施拉普拉斯变化
  * @return
  */
-Mesh LaplaceTransformation::apply()
+Mesh LaplaceDeformation::apply()
 {
     // 先预计算模型每个顶点的度
     getDegree();

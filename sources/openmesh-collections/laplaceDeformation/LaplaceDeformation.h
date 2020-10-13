@@ -12,7 +12,7 @@ using namespace std;
 using Eigen::Vector3d;
 using Eigen::MatrixXf;
 
-class LaplaceTransformation
+class LaplaceDeformation
 {
 public:
 
