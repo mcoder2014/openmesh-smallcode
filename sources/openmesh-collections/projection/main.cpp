@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include <OpenMesh/Core/IO/MeshIO.hh>
 
@@ -24,7 +25,12 @@ int main(int argc, char *argv[])
 
     // 投影
     Projection projection;
-    Mesh destModel = projection.ProjectZ(sourceModel);
+    vector<Vector3d> face;
+    face.push_back(Vector3d(0, 0, 0));
+    face.push_back(Vector3d(10, 0, 0));
+    face.push_back(Vector3d(0, 10, 0));
+
+    Mesh destModel = projection.project(sourceModel, face);
 
     // 保存
     OpenMesh::IO::Options option;
