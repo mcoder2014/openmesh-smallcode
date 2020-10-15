@@ -81,7 +81,7 @@ Eigen::Vector3d Octree::closestIntersectionPoint(const Ray &ray, int *faceIndex,
     }
 
     for( int idx : intersectRay( ray, 0.01, false ) ){
-        rayTriangleIntersectionTest(mesh->face_handle(static_cast<uint>(idx)), ray, res, false);
+        rayTriangleIntersectionTest(mesh->face_handle(static_cast<uint>(idx)), ray, res, true);
         if(res.hit){
             if (res.distance < minDistance){
                 minDistance = res.distance;

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <map>
 
 #include <Eigen/Dense>
 
@@ -12,79 +13,103 @@ using namespace std;
 using Eigen::Vector3d;
 using Eigen::AlignedBox3d;
 
+void addFace(Mesh& mesh, int i, int j, map<pair<int, int>, int>& indexMap);
+
 /**
- * @brief createGrid
- * 创建一个 XoY 平面的网格
+ * @brief remeshBottom
+ * 用均匀扫描线，扫描模型底层，并进行 mesh 构建
+ * @param mesh
  * @return
  */
-Mesh createGrid(Vector3d center, size_t numX, size_t numY, double delta)
+Mesh remeshBottom(Octree& octree, size_t numX, size_t numY)
 {
-    Mesh grid;
-    Vector3d start = center;
-    start.x() -= (numX * delta / 2);
-    start.y() -= (numY * delta / 2);
+    Mesh dstMesh;
+    AlignedBox3d boundingBox = octree.originBoundingBox;
+    Vector3d extent = boundingBox.max() - boundingBox.min();
+    double delta = std::max(extent.x(), std::max(extent.y(), extent.z()));
+    delta /= std::min(numX, numY);
 
-    // 添加顶点
+    // 记录某个位置扫描点加入 mesh 后的 index
+    map<pair<int, int>, int> indexMap;
+
+    // 从采样点位置发射射线
+    Vector3d direction(0.0, 0.0, -1.0);
+    Vector3d start = boundingBox.min();
+    start.z() += 2 * extent.z();
+
     Vector3d point(start);
     for(size_t i = 0; i < numX; i++) {
         for(size_t j = 0; j < numY; j++) {
-            grid.add_vertex(point);
+
+            Ray ray(point, direction, 0.000001);
+            int faceIndex = -1;
+            Vector3d intersectPoint = octree.closestIntersectionPoint(ray, &faceIndex);
+            if(faceIndex > 0) {
+                Mesh::VertexHandle vh = dstMesh.add_vertex(intersectPoint);
+                indexMap[pair<int, int>(i, j)] = vh.idx();
+            }
             point.y() += delta;
         }
         point.x() += delta;
         point.y() = start.y();
     }
 
-    // 添加边
-    vector<Mesh::VertexHandle> face;
-    for(size_t i = 0; i < numX-1; i++) {
-        for(size_t j = 0; j < numY-1; j++) {
-            Mesh::VertexHandle a = grid.vertex_handle(i * numY + j);
-            Mesh::VertexHandle b = grid.vertex_handle(i * numY + j + 1);
-            Mesh::VertexHandle c = grid.vertex_handle((i+1) * numY + j);
-            Mesh::VertexHandle d = grid.vertex_handle((i+1) * numY + j + 1);
-
-            face.clear();
-            face.push_back(a);
-            face.push_back(b);
-            face.push_back(d);
-            grid.add_face(face);
-
-            face.clear();
-            face.push_back(a);
-            face.push_back(d);
-            face.push_back(c);
-            grid.add_face(face);
+    // 建立网格链接
+    for(int i = 0; i < static_cast<int>(numX - 1); i++) {
+        for(int j = 0; j < static_cast<int>(numY - 1); j++) {
+            addFace(dstMesh, i, j, indexMap);
         }
     }
-    return grid;
+
+    return dstMesh;
 }
 
-Mesh createGridFromBoundingBox(AlignedBox3d boundingBox)
+/**
+ * @brief getVertexHandle
+ * 获得顶点 index，不存在返回 idx==-1
+ * @param mesh
+ * @param idx
+ * @param indexMap
+ * @return
+ */
+Mesh::VertexHandle getVertexHandle(Mesh& mesh, pair<int, int> idx, map<pair<int, int>, int>& indexMap)
 {
-    Vector3d center = boundingBox.center();
-    Vector3d extent = boundingBox.max() - boundingBox.min();
-    center.z() -= extent.z();
-    size_t numX = 1000;
-    size_t numY = 1000;
-    double delta = std::max(extent.x(), std::max(extent.y(), extent.z()));
-    delta /= std::min(numX, numY);
-
-    return createGrid(center, numX, numY, delta);
+    if(indexMap.find(idx) == indexMap.end()) {
+        return Mesh::VertexHandle(-1);
+    }
+    return mesh.vertex_handle(static_cast<uint>(indexMap[idx]));
 }
 
-void gridDeform(Mesh& grid, Octree& octree)
+/**
+ * @brief addFace
+ * 向模型中加入一个面片
+ * @param mesh
+ * @param i
+ * @param j
+ * @param indexMap
+ */
+void addFace(Mesh& mesh, int i, int j, map<pair<int, int>, int>& indexMap)
 {
-    Vector3d direction(0.0, 0.0, 1.0);
+    // 初始化为非法
+    Mesh::VertexHandle a = getVertexHandle(mesh, pair<int, int>(i, j), indexMap);
+    Mesh::VertexHandle b = getVertexHandle(mesh, pair<int, int>(i, j + 1), indexMap);
+    Mesh::VertexHandle c = getVertexHandle(mesh, pair<int, int>(i + 1, j), indexMap);
+    Mesh::VertexHandle d = getVertexHandle(mesh, pair<int, int>(i + 1, j + 1), indexMap);;
 
-    for(Mesh::VIter viter = grid.vertices_begin(); viter != grid.vertices_end(); viter++)
-    {
-        Ray ray(grid.point(*viter), direction, 0.000001);
-        int faceIndex = -1;
-        Vector3d intersectPoint = octree.closestIntersectionPoint(ray, &faceIndex);
-        if(faceIndex > 0) {
-            grid.point(*viter) = intersectPoint;
-        }
+    vector<Mesh::VertexHandle> face;
+
+    if(a.is_valid() && b.is_valid() && c.is_valid()) {
+        face.push_back(d);
+        face.push_back(b);
+        face.push_back(a);
+        mesh.add_face(face);
+    }
+    if(a.is_valid() && d.is_valid() && c.is_valid()) {
+        face.clear();
+        face.push_back(c);
+        face.push_back(d);
+        face.push_back(a);
+        mesh.add_face(face);
     }
 }
 
@@ -103,14 +128,13 @@ int main(int argc, char *argv[])
 
     // 加载模型
     OpenMesh::IO::read_mesh(sourceModel, sourceModelPath);
-    cout << "Load model success..." << endl;
+    cout << "Load model finished..." << endl;
 
     Octree octree(sourceModel);
-    cout << "create octree success..." << endl;
+    cout << "Create octree finished..." << endl;
 
-    Eigen::AlignedBox3d boundingBox = octree.originBoundingBox;
-    Mesh destModel = createGridFromBoundingBox(boundingBox);
-    gridDeform(destModel, octree);
+    Mesh destModel =remeshBottom(octree, 1000, 1000);
+    cout << "Remesh bottom finished..." << endl;
 
     // 保存
     OpenMesh::IO::Options option;
