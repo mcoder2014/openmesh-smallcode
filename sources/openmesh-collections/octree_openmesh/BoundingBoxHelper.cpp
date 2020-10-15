@@ -1,6 +1,6 @@
 #include "BoundingBoxHelper.h"
 
-Eigen::AlignedBox3d computeFromMesh(Mesh &mesh)
+Eigen::AlignedBox3d getBoundingBoxFromMesh(Mesh &mesh)
 {
     assert(mesh.n_vertices() >0);
 

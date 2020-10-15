@@ -14,7 +14,7 @@ using Eigen::AlignedBox3d;
 using Eigen::Vector3d;
 
 // 从网格中计算包围盒
-AlignedBox3d computeFromMesh(Mesh& mesh);
+AlignedBox3d getBoundingBoxFromMesh(Mesh& mesh);
 
 // 求包围盒和射线是否有交点
 bool intersects(const Eigen::AlignedBox3d &boundingBox, const Ray& ray);

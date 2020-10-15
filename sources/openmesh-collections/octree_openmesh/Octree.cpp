@@ -1,5 +1,7 @@
 #include "Octree.h"
 
+#include <iostream>
+
 /**
  * @brief Octree::Octree
  */
@@ -28,8 +30,8 @@ Octree::Octree(Mesh &mesh, int triPerNode)
 
     // 记录下所有面片
     std::vector<Mesh::FaceHandle> allTris;
-    for(Mesh::FaceIter fiter = this->mesh->faces_begin(); fiter != this->mesh->faces_end(); fiter ++)
-    {
+    for(Mesh::FaceIter fiter = this->mesh->faces_begin();
+        fiter != this->mesh->faces_end(); fiter ++){
         allTris.push_back(*fiter);
     }
 
@@ -78,13 +80,15 @@ Eigen::Vector3d Octree::closestIntersectionPoint(const Ray &ray, int *faceIndex,
         *faceIndex = -1;
     }
 
-    for( int i : intersectRay( ray, 0.01, false ) ){
-        rayTriangleIntersectionTest(mesh->face_handle(static_cast<uint>(*faceIndex)), ray, res, false);
+    for( int idx : intersectRay( ray, 0.01, false ) ){
+        rayTriangleIntersectionTest(mesh->face_handle(static_cast<uint>(idx)), ray, res, false);
         if(res.hit){
             if (res.distance < minDistance){
                 minDistance = res.distance;
                 intersectPoint = ray.origin + (ray.direction * res.distance);
-                if(faceIndex) *faceIndex = i;
+                if(faceIndex) {
+                    *faceIndex = idx;
+                }
                 best_res = res;
             }
         }
@@ -215,7 +219,7 @@ IndexSet Octree::intersectRay(Ray ray, double rayThickness, bool isFullTest) con
             if(curTree->children.size() == 0)
             {
                 // 把最后一层的相交的八叉树盒子中所有面片加入 三角形集合
-                for(Mesh::FaceHandle faceHandle : triangleData){
+                for(Mesh::FaceHandle faceHandle : curTree->triangleData){
                     triangleSet.insert(faceHandle.idx());
                 }
             }
@@ -243,6 +247,13 @@ IndexSet Octree::intersectRay(Ray ray, double rayThickness, bool isFullTest) con
             return exactSet;
         }
     }
+
+    // debug
+//    std::cout << "set size " << triangleSet.size() << std::endl;
+//    for(int i : triangleSet) {
+//        std::cout << i << "\t";
+//    }
+//    std::cout << std::endl;
 
     return triangleSet;
 }
@@ -318,10 +329,11 @@ bool Octree::testIntersectHit(const Ray &ray, HitResult &hitResult)
  * @param f
  * @return
  */
-vector<Eigen::Vector3d> Octree::triPoints(Mesh::FaceHandle f) const
+vector<Eigen::Vector3d> Octree::triPoints(Mesh::FaceHandle faceHandle) const
 {
     vector<Vector3d> points;
-    for (Mesh::FaceVertexIter fviter; fviter != mesh->fv_end(f); fviter++) {
+    for (Mesh::FaceVertexIter fviter = mesh->fv_iter(faceHandle);
+         fviter != mesh->fv_end(faceHandle); fviter++) {
         Vector3d point = mesh->point(*fviter);
         points.push_back(point);
     }
@@ -413,7 +425,7 @@ void Octree::initBuild(vector<Mesh::FaceHandle> &tris, int triPerNode)
     this->trianglePerNode = triPerNode;
 
     // 创建包围盒
-    AlignedBox3d bigBoundingBox = computeFromMesh(*mesh);
+    AlignedBox3d bigBoundingBox = getBoundingBoxFromMesh(*mesh);
     // 备份模型原始包围盒大小
     originBoundingBox = bigBoundingBox;
 
@@ -538,13 +550,12 @@ void Octree::newNode(int depth, double x, double y, double z)
     child.trianglePerNode = this->trianglePerNode;
 
     /// 筛选在子包围盒中的面片
-    for(Mesh::FaceIter fiter = mesh->faces_begin(); fiter != mesh->faces_end(); fiter++)
+    for(Mesh::FaceHandle faceHandle:triangleData)
     {
-        Mesh::FaceHandle fhandle = *fiter;
-        vector<Vector3d> points = triPoints(fhandle);
+        vector<Vector3d> points = triPoints(faceHandle);
         if(containsTriangle(bb, points[0], points[1], points[2]))
         {
-            child.triangleData.push_back(fhandle);
+            child.triangleData.push_back(faceHandle);
         }
     }
 
