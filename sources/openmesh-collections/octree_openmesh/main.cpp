@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <map>
 
@@ -13,7 +14,11 @@ using namespace std;
 using Eigen::Vector3d;
 using Eigen::AlignedBox3d;
 
+// 向网格中添加面
 void addFace(Mesh& mesh, int i, int j, map<pair<int, int>, int>& indexMap);
+
+// 将网格的顶点保存下来，尝试使用功能三角化建模
+void savePointsTxt(Mesh& mesh, string filePath);
 
 /**
  * @brief remeshBottom
@@ -113,6 +118,26 @@ void addFace(Mesh& mesh, int i, int j, map<pair<int, int>, int>& indexMap)
     }
 }
 
+/**
+ * @brief savePointsTxt
+ * @param mesh
+ * @param filePath
+ */
+void savePointsTxt(Mesh& mesh, string filePath)
+{
+    filePath.append(".txt");
+    std::fstream outFile;
+    outFile.open(filePath, ios::out | ios::trunc);
+
+    Vector3d point;
+    for(Mesh::VIter viter = mesh.vertices_begin(); viter != mesh.vertices_end(); viter++)
+    {
+        point = mesh.point(*viter);
+        outFile << point.x() << " " << point.y() << " " << point.z() << "\n";
+    }
+    outFile.close();
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -140,6 +165,7 @@ int main(int argc, char *argv[])
     OpenMesh::IO::Options option;
     option = OpenMesh::IO::Options::Binary;
     OpenMesh::IO::write_mesh(destModel, destModelPath, option);
+    savePointsTxt(destModel, destModelPath);
 
     return 0;
 }
