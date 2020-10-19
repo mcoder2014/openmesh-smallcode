@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    delaunay_triangle \
     laplaceDeformation \
     mirror \
     octree_openmesh \
