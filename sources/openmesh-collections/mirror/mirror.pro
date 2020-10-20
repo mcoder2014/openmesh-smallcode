@@ -11,13 +11,7 @@ SOURCES += \
         MeshAlgorithm.cpp \
 
 HEADERS += \
-        MeshAlgorithm.h \
-        Mesh.h \
+        MeshAlgorithm.h
 
-unix {
-    INCLUDEPATH += /usr/include/eigen3 \
+include(../openmesh.pri)
 
-    LIBS+= \
-        -L/usr/lib \
-        -lOpenMeshCore -lOpenMeshTools \
-}

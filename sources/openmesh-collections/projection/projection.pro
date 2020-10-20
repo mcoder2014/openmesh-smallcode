@@ -11,13 +11,6 @@ SOURCES += \
         main.cpp
 
 HEADERS += \
-    Mesh.h \
     Projection.h
 
-unix {
-    INCLUDEPATH += /usr/include/eigen3 \
-
-    LIBS+= \
-        -L/usr/lib \
-        -lOpenMeshCore -lOpenMeshTools \
-}
+include(../openmesh.pri)

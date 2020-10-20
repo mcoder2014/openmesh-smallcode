@@ -4,8 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 HEADERS += \
-    LaplaceDeformation.h \
-    Mesh.h
+    LaplaceDeformation.h
 
 SOURCES += \
         LaplaceDeformation.cpp \
@@ -16,12 +15,4 @@ SOURCES += \
 TARGET = laplaceDeformation
 DESTDIR = ../bin/
 
-unix {
-    INCLUDEPATH += /usr/include/eigen3 \
-
-    LIBS+= \
-        -L/usr/lib \
-        -lOpenMeshCore -lOpenMeshTools \
-}
-
-
+include(../openmesh.pri)

@@ -12,16 +12,9 @@ SOURCES += \
         Vector3D.cpp \
         main.cpp
 
-unix {
-    INCLUDEPATH += /usr/include/eigen3 \
-
-    LIBS+= \
-        -L/usr/lib \
-        -lOpenMeshCore -lOpenMeshTools \
-}
-
 HEADERS += \
     DelaunayTriangulation.h \
-    Mesh.h \
     Triangle.h \
     Vector3D.h
+
+include(../openmesh.pri)

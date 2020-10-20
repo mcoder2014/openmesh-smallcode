@@ -13,10 +13,4 @@ SOURCES += \
 TARGET = remesh-scan-insole
 DESTDIR = ../bin/
 
-unix {
-    INCLUDEPATH += /usr/include/eigen3 \
-
-    LIBS+= \
-        -L/usr/lib \
-        -lOpenMeshCore -lOpenMeshTools \
-}
+include(../openmesh.pri)

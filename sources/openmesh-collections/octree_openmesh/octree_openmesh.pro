@@ -12,17 +12,10 @@ SOURCES += \
 TARGET = octree
 DESTDIR = ../bin/
 
-unix {
-    INCLUDEPATH += /usr/include/eigen3 \
-
-    LIBS+= \
-        -L/usr/lib \
-        -lOpenMeshCore -lOpenMeshTools \
-}
-
 HEADERS += \
     BoundingBoxHelper.h \
-    Mesh.h \
     Octree.h \
     Triaccel.h \
     primitives.h
+
+include(../openmesh.pri)

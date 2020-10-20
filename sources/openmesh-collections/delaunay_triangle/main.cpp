@@ -7,7 +7,8 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <Eigen/Dense>
 
-#include "Mesh.h"
+#include <Mesh.h>
+
 #include "DelaunayTriangulation.h"
 #include "Vector3D.h"
 
