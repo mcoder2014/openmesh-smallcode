@@ -103,7 +103,7 @@ void addFace(Mesh& mesh, int i, int j, map<pair<int, int>, int>& indexMap)
 
     vector<Mesh::VertexHandle> face;
 
-    if(a.is_valid() && b.is_valid() && c.is_valid()) {
+    if(a.is_valid() && b.is_valid() && d.is_valid()) {
         face.push_back(d);
         face.push_back(b);
         face.push_back(a);

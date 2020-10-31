@@ -70,14 +70,14 @@ pcl::PointCloud<pcl::PointNormal>::Ptr loadPoints(string fileName)
     fin.close();
 
     // Normal estimation*
-    pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> n;
+    pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
     pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
     tree->setInputCloud (cloud);
-    n.setInputCloud (cloud);
-    n.setSearchMethod (tree);
-    n.setKSearch (20);
-    n.compute (*normals);
+    normalEstimation.setInputCloud (cloud);
+    normalEstimation.setSearchMethod (tree);
+    normalEstimation.setKSearch (20);
+    normalEstimation.compute (*normals);
     //* normals should not contain the point normals + surface curvatures
 
     // Concatenate the XYZ and normal fields*
